@@ -51,19 +51,38 @@ wss.on('connection', (ws, req) => {
         }
         op = data.op;
 
-        if(op==='100') return;
+        if(op===100) return;
 
         switch(op){
             case 1 :
+                let dUser = JSON.parse(data.user)
+                console.log(dUser)
                 console.log(clientIp)
-                let client = {uuid: newUUID, ip: clientIp, instance:data.from, uname: data.uname};
+                let role = 'user'
+                if (dUser.id==='383637400099880964'){
+                    role='admin'
+                }
+                let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
                 clients.set(newUUID,client)
                 console.log(clients)
                 logger.identify(clientIp, newUUID, clients.get(newUUID).instance)
                 logger.message('outcome','server.json')
                 //ws.send(JSON.stringify(pccApi));
-                ws.send(JSON.stringify({game: game, users: users}));
+                ws.send(JSON.stringify({op: 2, uuid: newUUID, game: game, role: role}));
                 break;
+            case 3 :
+                //! todo, vérif si l'user est déjà existant
+                for(let user of game.onlineUsers){
+                    if(user.dObject.id===clients.get(data.uuid).uid){
+                        ws.send(JSON.stringify({op: 5, error: "Vous êtes déjà connecté sur la partie."}));
+                    } else {
+                        ws.send(JSON.stringify({op: 4}));
+                        game.onlineUsers.push({user: clients.get(data.uuid).dUser, pseudo: data.pseudo})
+                    }
+                }
+                ws.send(JSON.stringify({op: 2, uuid: newUUID, game: game, role: role}));
+                break;
+            
         }
     })
-}) //! todo refonte systeme login
+})
