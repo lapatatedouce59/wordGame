@@ -1,5 +1,5 @@
 let data=false
-//let ws = new WebSocket('ws://localhost:8081')
+let ws = new WebSocket('ws://localhost:8081')
 let uuid = false
 
 
@@ -11,6 +11,7 @@ discordAvatar.src=localStorage.getItem('dAvatar')
 
 let joinParty = document.getElementById('joinParty')
 let errorMsg = document.getElementById('errorMsg')
+let statusText = document.getElementById('statusText')
 
 
 ws.addEventListener('open', ()=> {
@@ -37,10 +38,10 @@ ws.addEventListener('open', ()=> {
             data=data.content
             update()
         }else if(data.op===5){
-            data=data.content
             errorMsg.innerText=data.error
+            errorMsg.style.display='inline-block'
         }else if(data.op===4){
-            document.location.href('./waiting.html')
+            document.location.href='./waiting.html'
         }
     })
 })
@@ -49,5 +50,22 @@ joinParty.addEventListener('click',()=>{
     ws.send(JSON.stringify({
         op: 3,
         uuid: uuid,
+        pseudo: document.getElementById('pseudoInput').value,
     }));
 })
+
+function update(){
+    updateMisc()
+}
+function updateMisc(){
+    if(data.content.status==='waiting'){
+        statusText.innerText='Partie en attente...'
+        statusText.style.color='#FFEA79'
+    } else if(data.content.status==='ongoing'){
+        statusText.innerText='Partie en cours.'
+        statusText.style.color='#79FF7E'
+    } else if(data.content.status==='end'){
+        statusText.innerText='Hors ligne'
+        statusText.style.color='#FF7979'
+    }
+}

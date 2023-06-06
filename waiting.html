@@ -24,7 +24,7 @@
             margin-right: 10px;
         }
         .superuser{
-            color: #FF7979
+            color: #79AFFF
         }
         #users>p{
             margin: 5px;
@@ -41,7 +41,7 @@
         </tr>
         <tr>
             <td>
-                <p>Aucune partie n'est en cours</p>
+                <p id="statusText"></p>
             </td>
             <td>
                 <h1 id="gameTitle">Wordgame</h1>
@@ -54,13 +54,12 @@
     </table>
     <div id="middle" style="text-align: center;">
         <h3>En attente de démarrage de la game...</h3>
+        <p id="playerTab" style="color: #79FF7E;">Nombre de joueurs: <span id="playerCount"></span>/<span id="playerLimit"></span></p>
         <p>Joueurs en attente:</p>
         <div id="users" style="display: flexbox; ">
-            <p>Patate</p>
-            <p>Tom</p>
-            <p>Okay okay</p>
         </div>
     </div>
+    <button id="startGame" style="transform: translate(-50%); position: absolute; left: 50%;">Démarrer la partie</button>
     <script src="waiting.js"></script>
 </body>
 </html>

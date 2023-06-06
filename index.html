@@ -24,12 +24,11 @@
             margin-right: 10px;
         }
         .superuser{
-            color: #FF7979
+            color: #79AFFF
         }
     </style>
 </head>
 <body>
-    <script src="discord-verification.js"></script>
     <table id="head" style="width: 100%; text-align: center; table-layout: fixed;">
         <tr>
             <th scope="col" class="table1"></th>
@@ -38,7 +37,7 @@
         </tr>
         <tr>
             <td>
-                <p>Aucune partie n'est en cours</p>
+                <p id="statusText" style="color: #FFEA79;">Partie en attente...</p>
             </td>
             <td>
                 <h1 id="gameTitle">Wordgame</h1>
@@ -51,10 +50,11 @@
     </table>
     <div class="mid">
         <h3 id="askForName">Entre votre pseudo: </h3>
-        <input type="text" placeholder="PatateFraiche..."> <br>
+        <input type="text" placeholder="PatateFraiche..." id="pseudoInput"> <br>
         <button id="joinParty" style="margin-top: 10px;">Rejoindre le serveur</button><br>
-        <span style="color: crimson;" id="errorMsg">Vous êtes déjà connecté à la partie!</span>
+        <span style="color: crimson; display: none;" id="errorMsg">Vous êtes déjà connecté à la partie!</span>
     </div>
+    <script src="discord-verification.js"></script>
     <script src="index.js"></script>
 </body>
 </html>
