@@ -39,6 +39,7 @@ if(cookies.discord_token){
                                     localStorage.setItem('dId',usr.id)
                                     localStorage.setItem('dAvatarUrl',usr.avatar)
                                     localStorage.setItem('dAvatar', 'https://cdn.discordapp.com/avatars/'+usr.id+'/'+usr.avatar+'.png')
+                                    localStorage.setItem('dObject',JSON.stringify(usr))
                                     username=usr.username
                                     clearInterval(int)
                                     //ws.send(JSON.stringify({op: 1, exept: 'VERIFICATION', username: usr.username}))
