@@ -23,6 +23,9 @@
             width: 5vh;
             margin-right: 10px;
         }
+        .superuser{
+            color: #FF7979
+        }
     </style>
 </head>
 <body>
@@ -49,7 +52,8 @@
     <div class="mid">
         <h3 id="askForName">Entre votre pseudo: </h3>
         <input type="text" placeholder="PatateFraiche..."> <br>
-        <button id="joinParty" style="margin-top: 10px;">Rejoindre le serveur</button>
+        <button id="joinParty" style="margin-top: 10px;">Rejoindre le serveur</button><br>
+        <span style="color: crimson;" id="errorMsg">Vous êtes déjà connecté à la partie!</span>
     </div>
     <script src="index.js"></script>
 </body>
