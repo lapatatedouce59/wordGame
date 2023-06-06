@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WG - Accueil</title>
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            color: white;
+            background-color: #1E1E1E;
+        }
+        #gameTitle, #subtitle{
+            text-align: center;
+            margin: 0;
+        }
+        .mid{
+            margin-top: 100px;
+            text-align: center;
+        }
+        .imgAvatar{
+            width: 5vh;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <script src="discord-verification.js"></script>
+    <table id="head" style="width: 100%; text-align: center; table-layout: fixed;">
+        <tr>
+            <th scope="col" class="table1"></th>
+            <th scope="col" class="table1"></th>
+            <th scope="col" class="table1"></th>
+        </tr>
+        <tr>
+            <td>
+                <p>Aucune partie n'est en cours</p>
+            </td>
+            <td>
+                <h1 id="gameTitle">Wordgame</h1>
+                <p id="subtitle">Complete the sentences!</p>
+            </td>
+            <td style="display: flex; align-items: center;">
+                <img src="https://cdn.discordapp.com/avatars/383637400099880964/713915523e8a105cbf7d9fc25a4a91eb.png?size=4096" id="discordAvatar" class="imgAvatar"><p>Connecté en tant que: <span id="loggedUser" style="font-weight: bold;">Amaury</span></p>
+            </td>
+        </tr>
+    </table>
+    <div class="mid">
+        <h3 id="askForName">Entre votre pseudo: </h3>
+        <input type="text" placeholder="PatateFraiche..."> <br>
+        <button id="joinParty" style="margin-top: 10px;">Rejoindre le serveur</button>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
