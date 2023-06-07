@@ -5,10 +5,10 @@
     }
 }*/
 
-exports.client = function (state) {
+exports.client = function (state, ip) {
     switch (state){
         case true:
-            return console.log('\x1b[37m[\x1b[32m+\x1b[37m] Client connecté');
+            return console.log('\x1b[37m[\x1b[32m+\x1b[37m] Client connecté -> '+ip);
         case false:
             return console.log('\x1b[37m[\033[31m-\x1b[37m] Client déconnecté');
   };
@@ -33,8 +33,8 @@ exports.confirm = function (text){
     return console.log('\033[42m\x1b[37m[\x1b[30mCONFIRM\x1b[37m]\033[0m '+text);
 }
 
-exports.identify = function (ip, uuid, from){
-    return console.log('\x1b[37m[\x1b[32m=\x1b[37m] Client d\'IP '+ip+' d\'UUID '+uuid+'\n PROVIENS DE L\'INSTANCE '+from);
+exports.identify = function (ip, uuid, from, uname){
+    return console.log('\x1b[37m[\x1b[32m=\x1b[37m] '+uname+' proviens de '+from+' avec l\'UUID '+uuid);
 }
 
 exports.info = function (text){

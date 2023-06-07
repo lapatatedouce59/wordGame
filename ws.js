@@ -7,6 +7,8 @@ const clients = {}
 const {WebSocket, WebSocketServer} = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
 const game=require('./server.json');
+game.countdown=5
+fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
 const users=require('./user.json');
 const presets=require('./presets.json');
 /*const server = https.createServer({
@@ -40,8 +42,8 @@ wss.broadcast = function broadcast(msg) {
 
 wss.on('connection', (ws, req) => {
     let newUUID;
-    logger.client(true)
     let clientIp=req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    logger.client(true, clientIp)
     newUUID = v4();
     ws.id=newUUID
 
@@ -75,7 +77,8 @@ wss.on('connection', (ws, req) => {
                     clients[ws.id]=ws
                     //clients.set(newUUID,client)
                     console.log(clients)
-                    logger.identify(clientIp, newUUID, ws.instance)
+                    console.log(wss)
+                    logger.identify(clientIp, newUUID, ws.instance, ws.uname)
                     logger.message('outcome','server.json')
                     //ws.send(JSON.stringify(pccApi));
                     ws.send(JSON.stringify({op: 2, uuid: newUUID, content: game, role: role}));
@@ -122,7 +125,6 @@ wss.on('connection', (ws, req) => {
                 }
                 if(clients[data.uuid].role==='admin'){
                     startGame()
-
                 } else {
                     ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
                 }
@@ -159,11 +161,30 @@ wss.on('connection', (ws, req) => {
         }
     })
     ws.on("close", ()=>{
-            delete clients[ws.id];
-            console.log("[-] "+ws.id+" logged out");
+        delete clients[ws.id];
+        console.log("[-] "+ws.id+", "+ws.uname+" logged out");
     });
 })
 
 function startGame(){
-
+    let countDown = setInterval(()=>{
+        game.countdown--
+        wss.broadcast(JSON.stringify({
+            op: 9,
+            content: game
+        }))
+        fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+        console.log(game.countdown)
+        if(game.countdown<=0){
+            clearInterval(countDown)
+            for(let client of Object.entries(clients)){
+                console.log(client)
+                if(!(client[1].instance==='WAITSCREEN')) continue;
+                client[1].send(JSON.stringify({op: 10}))
+                console.log(client[1].id+' mooved to game')
+            }
+    
+            logger.message('broadcast','NEW SERVER DATA => REFRESH')
+        }
+    },1000)
 }
