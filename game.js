@@ -34,7 +34,7 @@ ws.addEventListener('open', ()=> {
     console.log('Connecté au WS')
     const weweOnAttends = async() => {
         ws.send(JSON.stringify({
-            op: 1,
+            op: 11,
             from: "WAITSCREEN",
             user: localStorage.getItem('dObject')
         }));
@@ -54,11 +54,6 @@ ws.addEventListener('open', ()=> {
             update()
         } else if (data.op===100){
             update()
-        } else if (data.op===9){
-            textAttente.innerText=data.content.countdown
-            updateMisc()
-        } else if (data.op===10){
-            document.location.href='game.html'
         }
     })
 })
@@ -66,33 +61,6 @@ ws.addEventListener('open', ()=> {
 function update(){
     updatePlayerNames()
     updateMisc()
-}
-
-function updatePlayerNames(){
-    users.innerHTML=''
-    for(let user of data.content.onlineUsers){
-        let uname = document.createElement('p')
-        let btnKick = document.createElement('button')
-        btnKick.classList.add('adminBtns')
-        btnKick.id='kickBtn'+user.pseudo
-        btnKick.innerText='Kick player'
-        uname.innerHTML=user.pseudo+'  '
-        uname.appendChild(btnKick)
-        users.appendChild(uname)
-        console.log(user.pseudo)
-        btnKick.addEventListener('click', ()=>{
-            ws.send(JSON.stringify({
-                op: 8,
-                uuid: uuid,
-                player: user.pseudo
-            }));
-        })
-    }
-    if(role==='user'){
-        for(let btns of document.getElementsByClassName('adminBtns')){
-            btns.classList.add('hidden')
-        }
-    }
 }
 
 function updateMisc(){
@@ -120,29 +88,3 @@ function updateMisc(){
         playerTab.style.color='#FF7979'
     }
 }
-
-let config = { rounds: 10, maxplayer: 10 }
-startGame.addEventListener('click', ()=>{
-    ws.send(JSON.stringify({
-        op: 6,
-        uuid: uuid
-    }));
-})
-gameConfig.addEventListener('click', ()=>{
-    startDialog.showModal()
-})
-confirmBtn.addEventListener('click', ()=>{
-    let parsedNb = parseInt(nbRounds.value)
-    let parsedMP = parseInt(maxPlayer.value)
-    config.rounds=parsedNb
-    config.maxplayer=parsedMP
-    startDialog.close()
-    ws.send(JSON.stringify({
-        op: 7,
-        uuid: uuid,
-        config: config
-    }));
-})
-cancelBtn.addEventListener('click', ()=>{
-    startDialog.close()
-})

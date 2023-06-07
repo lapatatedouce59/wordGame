@@ -3,6 +3,26 @@
   "onlineUsers": [
     {
       "user": {
+        "id": "1109789034512920636",
+        "username": "Paris Metro Fan",
+        "global_name": null,
+        "avatar": "eed5297a034c9a961418224f67208fc5",
+        "discriminator": "3191",
+        "public_flags": 0,
+        "flags": 0,
+        "banner": null,
+        "banner_color": null,
+        "accent_color": null,
+        "locale": "fr",
+        "mfa_enabled": false,
+        "premium_type": 0,
+        "avatar_decoration": null
+      },
+      "pseudo": "pute",
+      "uuid": "9217b4db-00dc-49b2-9884-1c4acb696d20"
+    },
+    {
+      "user": {
         "id": "383637400099880964",
         "username": ">root/bin/LaPatateDouce.exe_",
         "global_name": "Amaury ⁍ La Patate Douce",
@@ -19,12 +39,27 @@
         "avatar_decoration": null
       },
       "pseudo": "aaa",
-      "uuid": "b8ab20eb-3cab-4343-b86a-03a089577fcb"
+      "uuid": "15349b37-dd01-468d-93b1-e7d26517d6b8"
     }
   ],
-  "status": "waiting",
+  "status": "ongoing",
   "countdown": 0,
+  "responseCountdown": 10,
   "config": {
     "rounds": 10
-  }
+  },
+  "questions": [
+    [],
+    []
+  ],
+  "responses": [
+    [
+      {},
+      {}
+    ],
+    [
+      {},
+      {}
+    ]
+  ]
 }

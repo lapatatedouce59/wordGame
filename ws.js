@@ -7,7 +7,7 @@ const clients = {}
 const {WebSocket, WebSocketServer} = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
 const game=require('./server.json');
-game.countdown=5
+game.countdown=10
 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
 const users=require('./user.json');
 const presets=require('./presets.json');
@@ -21,6 +21,11 @@ const wss = new WebSocketServer({server});
 server.listen(8081, function listening() {
     console.log('Address: ', wss.address());
 });*/
+
+let connectedPlayers = 0
+let players = []
+let canGameBeStarted=false
+let verifStatus=false
 
 function apiSave(){
     console.log('action')
@@ -60,7 +65,7 @@ wss.on('connection', (ws, req) => {
 
         switch(op){
             case 1 :
-                let dUser=false
+                var dUser=false
                 try{
                     dUser = JSON.parse(data.user)
                     let role = 'user'
@@ -89,6 +94,14 @@ wss.on('connection', (ws, req) => {
                     break;
                 }
             case 3 :
+                if(game.status==='ongoing'||game.status==='starting'){
+                    ws.send(JSON.stringify({op: 5, error: "La partie est déjà commencée. Erreur: [GAME-STARTED]"}));
+                    return;
+                }
+                if(data.uuid===false){
+                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
+                    return;
+                }
                 if(game.onlineUsers.length>=game.maxusers){
                     ws.send(JSON.stringify({op: 5, error: "La partie est complète. Merci de patienter. Erreur: [MAX-PLAYERS]"}));
                     return;
@@ -158,6 +171,46 @@ wss.on('connection', (ws, req) => {
                     ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
                 }
                 break;
+            case 11 :
+                var dUser=false
+                try{
+                    dUser = JSON.parse(data.user)
+                    let role = 'user'
+                    if (dUser.id==='383637400099880964'){
+                        role='admin'
+                    }
+                    //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
+                    ws.ip = clientIp
+                    ws.instance = data.from
+                    ws.uname=dUser.username
+                    ws.uid=dUser.id
+                    ws.role=role
+                    ws.dUser=dUser
+                    clients[ws.id]=ws
+                    console.log(clients)
+                    console.log(wss)
+                    logger.identify(clientIp, newUUID, ws.instance, ws.uname)
+                    logger.message('outcome','server.json')
+                    ws.send(JSON.stringify({op: 2, uuid: newUUID, content: game, role: role}));
+
+                    for(let players of game.onlineUsers){
+                        if(!(players.user.id===ws.dUser.id)) continue;
+                        if(players.user.id===ws.dUser.id){
+                            connectedPlayers++
+                        } else {
+                            ws.send(JSON.stringify({op: 5, error: "Vous n'êtes pas inscrit dans la partie! Erreur: [NOT-IG]"}));
+                        }
+                    }
+                    if(verifStatus===false) {
+                        verify()
+                        verifStatus=true
+                    }
+                    break;
+                } catch (error) {
+                    logger.error(error)
+                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-DUSER]"}));
+                    break;
+                }
         }
     })
     ws.on("close", ()=>{
@@ -167,6 +220,8 @@ wss.on('connection', (ws, req) => {
 })
 
 function startGame(){
+    game.status='starting'
+    fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
     let countDown = setInterval(()=>{
         game.countdown--
         wss.broadcast(JSON.stringify({
@@ -182,9 +237,26 @@ function startGame(){
                 if(!(client[1].instance==='WAITSCREEN')) continue;
                 client[1].send(JSON.stringify({op: 10}))
                 console.log(client[1].id+' mooved to game')
+                players.push(client[1].id)
             }
-    
-            logger.message('broadcast','NEW SERVER DATA => REFRESH')
+            logger.message('broadcast','Player mooved')
+            game.status='ongoing';
+            fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+            wss.broadcast(JSON.stringify({
+                op: 9,
+                content: game
+            }))
         }
     },1000)
+}
+
+function verify(){
+    let verifyPlayers = setInterval(()=>{
+        if(connectedPlayers=players.length){
+            clearInterval(verifyPlayers)
+            game.countdown=10
+            canGameBeStarted=true
+            console.log('start')
+        }
+    })
 }
