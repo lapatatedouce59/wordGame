@@ -26,6 +26,9 @@
         .superuser{
             color: #79AFFF
         }
+        .hidden{
+            display: none;
+        }
         #users>p{
             margin: 5px;
         }
@@ -57,9 +60,29 @@
         <p id="playerTab" style="color: #79FF7E;">Nombre de joueurs: <span id="playerCount"></span>/<span id="playerLimit"></span></p>
         <p>Joueurs en attente:</p>
         <div id="users" style="display: flexbox; ">
+            <p>Patate <button>Kick</button></p>
         </div>
     </div>
-    <button id="startGame" style="transform: translate(-50%); position: absolute; left: 50%;">Démarrer la partie</button>
+    <div style="text-align: center;">
+        <button id="gameConfig">Configuration de la partie</button>
+        <button id="startGame">Démarrer la partie</button>
+    </div>
+    <dialog id="startDialog">
+        <fieldset>
+            <legend>Tours</legend>
+            <label for="nbRounds">Nombre de tours</label>
+            <input type="number" id="nbRounds" value="10">
+        </fieldset>
+        <fieldset>
+            <legend>Administration</legend>
+            <label for="maxPlayer">Nombre maximal de joueurs</label>
+            <input type="number" id="maxPlayer" value="10">
+        </fieldset>
+        <menu>
+            <button value="cancel" id="cancelBtn">Annuler</button>
+            <button id="confirmBtn" value="default">Confirmer</button>
+        </menu>
+    </dialog>
     <script src="waiting.js"></script>
 </body>
 </html>

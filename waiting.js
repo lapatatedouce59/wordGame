@@ -1,6 +1,7 @@
 let data=false
 let ws = new WebSocket('ws://localhost:8081')
 let uuid = false
+let role='user'
 
 
 let loggedUser = document.getElementById('loggedUser')
@@ -17,6 +18,13 @@ let playerCount = document.getElementById('playerCount')
 let playerLimit = document.getElementById('playerLimit')
 
 let startGame = document.getElementById('startGame')
+let gameConfig = document.getElementById('gameConfig')
+let nbRounds = document.getElementById('nbRounds')
+let maxPlayer = document.getElementById('maxPlayer')
+
+let startDialog = document.getElementById('startDialog')
+let cancelBtn = document.getElementById('cancelBtn')
+let confirmBtn = document.getElementById('confirmBtn')
 
 
 
@@ -37,6 +45,7 @@ ws.addEventListener('open', ()=> {
 
         if(data.op===2){
             uuid=data.uuid
+            role=data.role
             if(data.role==='admin'){
                 loggedUser.classList.add('superuser')
             }
@@ -56,8 +65,26 @@ function updatePlayerNames(){
     users.innerHTML=''
     for(let user of data.content.onlineUsers){
         let uname = document.createElement('p')
-        uname.innerText=user.pseudo
+        let btnKick = document.createElement('button')
+        btnKick.classList.add('adminBtns')
+        btnKick.id='kickBtn'+user.pseudo
+        btnKick.innerText='Kick player'
+        uname.innerHTML=user.pseudo+'  '
+        uname.appendChild(btnKick)
         users.appendChild(uname)
+        console.log(user.pseudo)
+        btnKick.addEventListener('click', ()=>{
+            ws.send(JSON.stringify({
+                op: 8,
+                uuid: uuid,
+                player: user.pseudo
+            }));
+        })
+    }
+    if(role==='user'){
+        for(let btns of document.getElementsByClassName('adminBtns')){
+            btns.classList.add('hidden')
+        }
     }
 }
 
@@ -80,9 +107,28 @@ function updateMisc(){
     }
 }
 
+let config = { rounds: 10, maxplayer: 10 }
 startGame.addEventListener('click', ()=>{
     ws.send(JSON.stringify({
         op: 6,
-        uuid: uuid,
+        uuid: uuid
     }));
+})
+gameConfig.addEventListener('click', ()=>{
+    startDialog.showModal()
+})
+confirmBtn.addEventListener('click', ()=>{
+    let parsedNb = parseInt(nbRounds.value)
+    let parsedMP = parseInt(maxPlayer.value)
+    config.rounds=parsedNb
+    config.maxplayer=parsedMP
+    startDialog.close()
+    ws.send(JSON.stringify({
+        op: 7,
+        uuid: uuid,
+        config: config
+    }));
+})
+cancelBtn.addEventListener('click', ()=>{
+    startDialog.close()
 })

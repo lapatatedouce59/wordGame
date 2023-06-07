@@ -2,7 +2,8 @@ const fs = require('fs')
 const logger = require('./logger')
 const https = require('https')
 const {v4} = require('uuid')
-const clients = new Map();
+//const clients = new Map();
+const clients = {}
 const {WebSocket, WebSocketServer} = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
 const game=require('./server.json');
@@ -42,6 +43,7 @@ wss.on('connection', (ws, req) => {
     logger.client(true)
     let clientIp=req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     newUUID = v4();
+    ws.id=newUUID
 
     ws.on('message', msg => {
         let data = false
@@ -63,10 +65,17 @@ wss.on('connection', (ws, req) => {
                     if (dUser.id==='383637400099880964'){
                         role='admin'
                     }
-                    let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
-                    clients.set(newUUID,client)
+                    //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
+                    ws.ip = clientIp
+                    ws.instance = data.from
+                    ws.uname=dUser.username
+                    ws.uid=dUser.id
+                    ws.role=role
+                    ws.dUser=dUser
+                    clients[ws.id]=ws
+                    //clients.set(newUUID,client)
                     console.log(clients)
-                    logger.identify(clientIp, newUUID, clients.get(newUUID).instance)
+                    logger.identify(clientIp, newUUID, ws.instance)
                     logger.message('outcome','server.json')
                     //ws.send(JSON.stringify(pccApi));
                     ws.send(JSON.stringify({op: 2, uuid: newUUID, content: game, role: role}));
@@ -88,18 +97,18 @@ wss.on('connection', (ws, req) => {
                 console.log(data)
                 if(game.onlineUsers.length===0){
                     console.log('ok')
-                    ws.send(JSON.stringify({op: 4}));
-                    game.onlineUsers.push({user: clients.get(data.uuid).dUser, pseudo: data.pseudo, uuid: data.uuid})
+                    game.onlineUsers.push({user: clients[data.uuid].dUser, pseudo: data.pseudo, uuid: data.uuid})
                     apiSave()
+                    ws.send(JSON.stringify({op: 4}));
                     return;
                 } else {
                     for(let user of game.onlineUsers){
-                        if(user.user.id===clients.get(data.uuid).uid){
+                        if(user.user.id===clients[data.uuid].uid){
                             ws.send(JSON.stringify({op: 5, error: "Vous êtes déjà connecté sur la partie. Erreur: [ALREADY-IG]"}));
                             return;
                         } else {
                             ws.send(JSON.stringify({op: 4}));
-                            game.onlineUsers.push({user: clients.get(data.uuid).dUser, pseudo: data.pseudo, uuid: data.uuid})
+                            game.onlineUsers.push({user: clients[data.uuid].dUser, pseudo: data.pseudo, uuid: data.uuid})
                             apiSave()
                             return;
                         }
@@ -111,13 +120,48 @@ wss.on('connection', (ws, req) => {
                     ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
                     return;
                 }
-                if(clients.get(data.uuid).role==='admin'){
-                    //? peut etre s'amuser a config la partie avec le <dialog>, comme ça on met une config
+                if(clients[data.uuid].role==='admin'){
                     startGame()
 
+                } else {
+                    ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
                 }
+                break;
+            case 7 :
+                if(!data.uuid){
+                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
+                    return;
+                }
+                if(clients[data.uuid].role==='admin'){
+                    game.maxusers=data.config.maxplayer
+                    game.config.rounds=data.config.rounds
+                    apiSave()
+                } else {
+                    ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
+                }
+                break;
+            case 8 :
+                if(!data.uuid){
+                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
+                    return;
+                }
+                if(clients[data.uuid].role==='admin'){
+                    for(let user in game.onlineUsers){
+                        if(!(game.onlineUsers[user].pseudo===data.player)) continue;
+                        game.onlineUsers.splice(user, 1)
+                        console.log(data.player + ' bien kick')
+                    }
+                    apiSave()
+                } else {
+                    ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
+                }
+                break;
         }
     })
+    ws.on("close", ()=>{
+            delete clients[ws.id];
+            console.log("[-] "+ws.id+" logged out");
+    });
 })
 
 function startGame(){

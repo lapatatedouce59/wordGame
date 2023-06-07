@@ -58,14 +58,18 @@ function update(){
     updateMisc()
 }
 function updateMisc(){
-    if(data.content.status==='waiting'){
+    console.log(data)
+    if(data.status==='waiting'){
         statusText.innerText='Partie en attente...'
         statusText.style.color='#FFEA79'
-    } else if(data.content.status==='ongoing'){
+    } else if(data.status==='ongoing'){
         statusText.innerText='Partie en cours.'
         statusText.style.color='#79FF7E'
-    } else if(data.content.status==='end'){
+    } else if(data.status==='end'){
         statusText.innerText='Hors ligne'
         statusText.style.color='#FF7979'
+    } else if(data.status==='starting'){
+        statusText.innerText='Départ imminent!'
+        statusText.style.color='#F479FF'
     }
 }

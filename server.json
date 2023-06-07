@@ -1,46 +1,9 @@
 {
-  "maxusers": 2,
-  "onlineUsers": [
-    {
-      "user": {
-        "id": "383637400099880964",
-        "username": ">root/bin/LaPatateDouce.exe_",
-        "global_name": "Amaury ⁍ La Patate Douce",
-        "avatar": "713915523e8a105cbf7d9fc25a4a91eb",
-        "discriminator": "8881",
-        "public_flags": 4194560,
-        "flags": 4194560,
-        "banner": null,
-        "banner_color": "#3b3b57",
-        "accent_color": 3881815,
-        "locale": "fr",
-        "mfa_enabled": true,
-        "premium_type": 0,
-        "avatar_decoration": null
-      },
-      "pseudo": "amaury",
-      "uuid": "26f85f15-bdcd-4ee3-8ed1-10189a3cf507"
-    },
-    {
-      "user": {
-        "id": "1109789034512920636",
-        "username": "Paris Metro Fan",
-        "global_name": null,
-        "avatar": "eed5297a034c9a961418224f67208fc5",
-        "discriminator": "3191",
-        "public_flags": 0,
-        "flags": 0,
-        "banner": null,
-        "banner_color": null,
-        "accent_color": null,
-        "locale": "fr",
-        "mfa_enabled": false,
-        "premium_type": 0,
-        "avatar_decoration": null
-      },
-      "pseudo": "simon",
-      "uuid": "2c89c7d1-3b43-4859-818f-f1f4c774549d"
-    }
-  ],
-  "status": "waiting"
+  "maxusers": 9,
+  "onlineUsers": [],
+  "status": "waiting",
+  "countdown": 10,
+  "config": {
+    "rounds": 10
+  }
 }
