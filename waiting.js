@@ -21,6 +21,7 @@ let startGame = document.getElementById('startGame')
 let gameConfig = document.getElementById('gameConfig')
 let nbRounds = document.getElementById('nbRounds')
 let maxPlayer = document.getElementById('maxPlayer')
+let timePerQuestions = document.getElementById('timePerQuestions')
 
 let startDialog = document.getElementById('startDialog')
 let cancelBtn = document.getElementById('cancelBtn')
@@ -121,7 +122,7 @@ function updateMisc(){
     }
 }
 
-let config = { rounds: 10, maxplayer: 10 }
+let config = { rounds: 10, maxplayer: 10, tpq: 10 }
 startGame.addEventListener('click', ()=>{
     ws.send(JSON.stringify({
         op: 6,
@@ -134,8 +135,10 @@ gameConfig.addEventListener('click', ()=>{
 confirmBtn.addEventListener('click', ()=>{
     let parsedNb = parseInt(nbRounds.value)
     let parsedMP = parseInt(maxPlayer.value)
+    let parsedTPQ = parseInt(timePerQuestions.value)
     config.rounds=parsedNb
     config.maxplayer=parsedMP
+    config.tpq=parsedTPQ
     startDialog.close()
     ws.send(JSON.stringify({
         op: 7,

@@ -44,7 +44,7 @@
         </tr>
         <tr>
             <td>
-                <p id="statusText"></p>
+                <h4>Round <span id="actualRound"></span>/<span id="maxround"></span> !</h4>
             </td>
             <td>
                 <h1 id="gameTitle">Wordgame</h1>
@@ -55,7 +55,12 @@
             </td>
         </tr>
     </table>
-    
-    <script src="game.js"></script>
+    <div id="gameCenter">
+        <p id="sentence">
+
+        </p>
+        <p id="responseCountdown">Envoi de la réponse dans <span id="actualResponseCountdown">?</span> secondes.</p>
+    </div>
+    <script src="game.js" type="module"></script>
 </body>
 </html>

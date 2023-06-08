@@ -8,6 +8,9 @@ const {WebSocket, WebSocketServer} = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
 const game=require('./server.json');
 game.countdown=10
+game.responseCountdown=10
+game.responses=[]
+game.questions=[]
 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
 const users=require('./user.json');
 const presets=require('./presets.json');
@@ -26,6 +29,8 @@ let connectedPlayers = 0
 let players = []
 let canGameBeStarted=false
 let verifStatus=false
+
+let uresponses = new Array()
 
 function apiSave(){
     console.log('action')
@@ -69,7 +74,7 @@ wss.on('connection', (ws, req) => {
                 try{
                     dUser = JSON.parse(data.user)
                     let role = 'user'
-                    if (dUser.id==='383637400099880964'){
+                    if (dUser.id==='383637400099880964'||dUser.id==='1095283865964269598'){
                         role='admin'
                     }
                     //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
@@ -150,6 +155,7 @@ wss.on('connection', (ws, req) => {
                 if(clients[data.uuid].role==='admin'){
                     game.maxusers=data.config.maxplayer
                     game.config.rounds=data.config.rounds
+                    game.config.tpq=data.config.tpq
                     apiSave()
                 } else {
                     ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
@@ -211,6 +217,28 @@ wss.on('connection', (ws, req) => {
                     ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-DUSER]"}));
                     break;
                 }
+            case 12 :
+                for(let players of game.onlineUsers){
+                    if(!(players.user.id===ws.dUser.id)) continue;
+                    if(players.user.id===ws.dUser.id){
+
+                        if(game.responseCountdown===0){
+                            console.log(ws.id+' has responded.')
+                            uresponses.push({ hole: data.completed, user: ws.dUser })
+                            if(uresponses.length===game.onlineUsers.length){
+                                game.responses.push(uresponses)
+                                fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+                                uresponses=[]
+                                question()
+                            }
+                        } else {
+                            ws.send(JSON.stringify({op: 5, error: "Vous avez envoyé votre reponse trop tôt! [COUNTDOWN-NOT0]"}));
+                        }
+                    } else {
+                        ws.send(JSON.stringify({op: 5, error: "Mdr t'es pas dans la partie qu'est-ce que tu me bidouille là? Erreur: [NOT-IG]"}));
+                    }
+                }
+                break;
         }
     })
     ws.on("close", ()=>{
@@ -251,12 +279,64 @@ function startGame(){
 }
 
 function verify(){
+    const startDate = Date.now()
     let verifyPlayers = setInterval(()=>{
-        if(connectedPlayers=players.length){
+        if(connectedPlayers===players.length){
             clearInterval(verifyPlayers)
+            const endDate = Date.now()
+            console.log('All players are connected. Time elapsed: '+(endDate-startDate)+' ms.')
             game.countdown=10
             canGameBeStarted=true
-            console.log('start')
+            console.log('------------------------------------ GAME CAN START ------------------------------------')
+            question()
         }
     })
+}
+
+
+
+let actualRound=0
+async function question(){
+    game.responseCountdown=game.config.tpq
+    fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+    if(actualRound<game.config.rounds){
+        actualRound++
+        let randomQuestion = getRandomQuestion()
+        game.questions.push(randomQuestion)
+        for(let client of Object.entries(clients)){
+            if(!(client[1].instance==='GAME')) continue;
+            client[1].send(JSON.stringify({op: 12, question: randomQuestion, round: actualRound, maxrounds: game.config.rounds}))
+            console.log('Question '+actualRound+' envoyée à '+client[1].id)
+        }
+        let countDown = setInterval(()=>{
+            game.responseCountdown--
+            fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+            wss.broadcast(JSON.stringify({
+                op: 13,
+                count: game.responseCountdown
+            }))
+            console.log('Time left: '+game.responseCountdown+' seconds')
+            if(game.responseCountdown<=0){
+                clearInterval(countDown)
+                for(let client of Object.entries(clients)){
+                    if(!(client[1].instance==='GAME')) continue;
+                    client[1].send(JSON.stringify({op: 14}))
+                    console.log('requested response to '+client[1].id+' and ask for new round')
+                }
+            }
+        },1000)
+    } else {
+        //finir la partie
+        for(let client of Object.entries(clients)){
+            if(!(client[1].instance==='GAME')) continue;
+            client[1].send(JSON.stringify({op: 16}))
+            console.log(client[1].id+' sent to game ending')
+        }
+    }
+}
+
+function getRandomQuestion(){
+    let randomIndex = Math.floor(Math.random() * presets.length);
+    let theChoosenOne = presets[randomIndex]
+    return theChoosenOne;
 }

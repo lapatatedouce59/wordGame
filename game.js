@@ -3,6 +3,11 @@ let ws = new WebSocket('ws://localhost:8081')
 let uuid = false
 let role='user'
 
+import sm from './sm.js'
+sm.init()
+sm.registerSound("tick", './src/snds/tick.mp3');
+sm.registerSound("beep", './src/snds/arival.mp3');
+
 
 let loggedUser = document.getElementById('loggedUser')
 loggedUser.innerText=localStorage.getItem('dUsername')
@@ -10,24 +15,13 @@ loggedUser.innerText=localStorage.getItem('dUsername')
 let discordAvatar = document.getElementById('discordAvatar')
 discordAvatar.src=localStorage.getItem('dAvatar')
 
-let users = document.getElementById('users')
-let statusText = document.getElementById('statusText')
+let responseCountdown = document.getElementById('responseCountdown')
+let actualResponseCountdown = document.getElementById('actualResponseCountdown')
 
-let playerTab = document.getElementById('playerTab')
-let playerCount = document.getElementById('playerCount')
-let playerLimit = document.getElementById('playerLimit')
+let sentence = document.getElementById('sentence')
 
-let startGame = document.getElementById('startGame')
-let gameConfig = document.getElementById('gameConfig')
-let nbRounds = document.getElementById('nbRounds')
-let maxPlayer = document.getElementById('maxPlayer')
-
-let startDialog = document.getElementById('startDialog')
-let cancelBtn = document.getElementById('cancelBtn')
-let confirmBtn = document.getElementById('confirmBtn')
-
-let textAttente = document.getElementById('textAttente')
-
+let actualRound = document.getElementById('actualRound')
+let maxround = document.getElementById('maxround')
 
 
 ws.addEventListener('open', ()=> {
@@ -35,7 +29,7 @@ ws.addEventListener('open', ()=> {
     const weweOnAttends = async() => {
         ws.send(JSON.stringify({
             op: 11,
-            from: "WAITSCREEN",
+            from: "GAME",
             user: localStorage.getItem('dObject')
         }));
     }
@@ -54,37 +48,26 @@ ws.addEventListener('open', ()=> {
             update()
         } else if (data.op===100){
             update()
+        } else if (data.op===12){
+            actualRound.innerText=data.round
+            maxround.innerText=data.maxrounds
+            let parsedSentence= data.question.replace('§', "<input type='text' id='responseInput' placeholder='Amaury...'>")
+            sm.playSound('beep')
+            sentence.innerHTML=parsedSentence
+        } else if (data.op===13){
+            actualResponseCountdown.innerText=data.count
+            sm.playSound('tick')
+        } else if (data.op===14){
+            let input = document.getElementById('responseInput')
+            ws.send(JSON.stringify({
+                op: 12,
+                uuid: uuid,
+                completed: input.value
+            }));
         }
     })
 })
 
 function update(){
-    updatePlayerNames()
-    updateMisc()
-}
-
-function updateMisc(){
-    console.log(data.content.status)
-    if(data.content.status==='waiting'){
-        statusText.innerText='Partie en attente...'
-        statusText.style.color='#FFEA79'
-    }
-    if(data.content.status==='ongoing'){
-        statusText.innerText='Partie en cours.'
-        statusText.style.color='#79FF7E'
-    }
-    if(data.content.status==='end'){
-        statusText.innerText='Hors ligne'
-        statusText.style.color='#FF7979'
-    }
-    if(data.content.status==='starting'){
-        statusText.innerText='Départ imminent!'
-        statusText.style.color='#F479FF'
-    }
-
-    playerCount.innerText=data.content.onlineUsers.length
-    playerLimit.innerText=data.content.maxusers
-    if(data.content.onlineUsers.length>=data.content.maxusers){
-        playerTab.style.color='#FF7979'
-    }
+    
 }
