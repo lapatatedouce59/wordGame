@@ -5,13 +5,14 @@ const {v4} = require('uuid')
 //const clients = new Map();
 const clients = {}
 const {WebSocket, WebSocketServer} = require('ws');
-const wss = new WebSocket.Server({ port: 8081 });
+const wss = new WebSocket.Server({ port: 8082 });
 const game=require('./server.json');
 game.countdown=10
 game.responseCountdown=10
 
 game.responses=[]
 game.questions=[]
+game.onlineUsers=[]
 
 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
 const users=require('./user.json');
@@ -23,7 +24,7 @@ const presets=require('./presets.json');
 
 const wss = new WebSocketServer({server});
 
-server.listen(8081, function listening() {
+server.listen(8082, function listening() {
     console.log('Address: ', wss.address());
 });*/
 
@@ -91,8 +92,6 @@ wss.on('connection', (ws, req) => {
                     ws.dUser=dUser
                     clients[ws.id]=ws
                     //clients.set(newUUID,client)
-                    console.log(clients)
-                    console.log(wss)
                     logger.identify(clientIp, newUUID, ws.instance, ws.uname)
                     logger.message('outcome','server.json')
                     //ws.send(JSON.stringify(pccApi));
@@ -235,6 +234,14 @@ wss.on('connection', (ws, req) => {
                                 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
                                 uresponses=[]
                                 question()
+                            } else {
+                                console.log('WAITING FOR PLAYER')
+                                /*let wait = async function (){
+                                    await setTimeout(5000)
+                                    for(let missing of game.onlineUsers.length-uresponses.length){
+                                        uresponses.push({ hole: 'VIDE', user: 'NONE' })
+                                    }
+                                }*/
                             }
                         } else {
                             ws.send(JSON.stringify({op: 5, error: "Vous avez envoyé votre reponse trop tôt! [COUNTDOWN-NOT0]"}));
@@ -366,6 +373,7 @@ function verifySpec(){
 
 let actualRound=0
 async function question(){
+    verifStatus=false
     game.responseCountdown=game.config.tpq
     fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
     if(actualRound<game.config.rounds){
@@ -408,6 +416,7 @@ async function question(){
 
 let presentedRound=0
 async function reveal(){
+    verifStatusSpect=false
     if(presentedRound<game.config.rounds){
         presentedRound++
         for(let client of Object.entries(clients)){
@@ -422,8 +431,16 @@ async function reveal(){
         game.responses=[]
         game.onlineUsers=[]
         game.questions=[]
-        game.status='waiting'
         fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
+        players=[]
+        playerCount=0
+        connectedPlayers=0
+        connectedSpectators=0
+        nbRounds=0
+        actualRound=0
+        presentedRound=0
+        game.status='waiting'
+        
         
         for(let client of Object.entries(clients)){
             if(!(client[1].instance==='RESULTS')) continue;
