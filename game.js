@@ -64,6 +64,9 @@ ws.addEventListener('open', ()=> {
                 uuid: uuid,
                 completed: input.value
             }));
+            console.log('Sent "'+input.value+'" to server')
+        } else if (data.op===16){
+            document.location.href='results.html'
         }
     })
 })
