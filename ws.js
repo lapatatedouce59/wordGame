@@ -311,6 +311,7 @@ wss.on('connection', (ws, req) => {
 })
 
 function startGame(){
+    actualRound=0
     game.status='starting'
     fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
     let countDown = setInterval(()=>{
@@ -404,6 +405,8 @@ async function question(){
         },1000)
     } else {
         //finir la partie
+        actualRound=0
+        presentedRound=0
         for(let client of Object.entries(clients)){
             if(!(client[1].instance==='GAME')) continue;
             client[1].send(JSON.stringify({op: 16}))
@@ -431,16 +434,13 @@ async function reveal(){
         game.responses=[]
         game.onlineUsers=[]
         game.questions=[]
-        fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
         players=[]
         playerCount=0
         connectedPlayers=0
         connectedSpectators=0
         nbRounds=0
-        actualRound=0
-        presentedRound=0
         game.status='waiting'
-        
+        fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
         
         for(let client of Object.entries(clients)){
             if(!(client[1].instance==='RESULTS')) continue;

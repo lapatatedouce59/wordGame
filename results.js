@@ -91,7 +91,7 @@ ws.addEventListener('open', ()=> {
                     imgAvatar.classList.add('imgAvatar')
                     let uName = document.createElement('p')
                     uName.style.fontWeight='bold'
-                    uName.innerText=response.user.username
+                    uName.innerHTML=response.pseudo
                     divHead.appendChild(imgAvatar)
                     divHead.appendChild(uName)
                     divElem.id=('divElem'+row)
