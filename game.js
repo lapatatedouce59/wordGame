@@ -74,3 +74,12 @@ ws.addEventListener('open', ()=> {
 function update(){
     
 }
+
+let secoursBug = document.getElementById('secoursBug')
+
+secoursBug.addEventListener('click',()=>{
+    ws.send(JSON.stringify({
+        op: 50,
+        uuid: uuid,
+    }));
+})

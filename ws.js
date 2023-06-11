@@ -16,6 +16,8 @@ game.responses=[]
 game.questions=[]
 game.onlineUsers=[]
 
+game.status='waiting'
+
 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
 const users=require('./user.json');
 const presets=require('./presets.json');
@@ -195,8 +197,6 @@ wss.on('connection', (ws, req) => {
                     ws.role=role
                     ws.dUser=dUser
                     clients[ws.id]=ws
-                    console.log(clients)
-                    console.log(wss)
                     logger.identify(clientIp, newUUID, ws.instance, ws.uname)
                     logger.message('outcome','server.json')
                     ws.send(JSON.stringify({op: 2, uuid: newUUID, content: game, role: role}));
@@ -205,11 +205,12 @@ wss.on('connection', (ws, req) => {
                         if(!(players.user.id===ws.dUser.id)) continue;
                         if(players.user.id===ws.dUser.id){
                             connectedPlayers++
+                            console.log(ws.uname + ' has connected into game. Now '+connectedPlayers+' players /'+game.onlineUsers.length)
                         } else {
                             ws.send(JSON.stringify({op: 5, error: "Vous n'êtes pas inscrit dans la partie! Erreur: [NOT-IG]"}));
                         }
                     }
-                    if(verifStatus===false) {
+                    if(verifStatus===false&&(canGameBeStarted)) {
                         verify()
                         verifStatus=true
                     }
@@ -225,15 +226,16 @@ wss.on('connection', (ws, req) => {
                     if(players.user.id===ws.dUser.id){
 
                         if(game.responseCountdown<1){
-                            console.log(ws.id+' has responded.')
+                            console.log(ws.uname+' has responded.')
                             uresponses.push({ hole: data.completed, user: ws.dUser, pseudo: players.pseudo })
                             if(uresponses.length===game.onlineUsers.length){
+                                console.log('The all '+uresponses.length+' players responded.')
                                 game.responses.push(uresponses)
                                 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
                                 uresponses=[]
                                 question()
                             } else {
-                                console.log('WAITING FOR PLAYER')
+                                console.log("Missing "+(game.onlineUsers.length-uresponses.length)+' players.')
                                 /*let wait = async function (){
                                     await setTimeout(5000)
                                     for(let missing of game.onlineUsers.length-uresponses.length){
@@ -265,8 +267,6 @@ wss.on('connection', (ws, req) => {
                     ws.role=role
                     ws.dUser=dUser
                     clients[ws.id]=ws
-                    console.log(clients)
-                    console.log(wss)
                     logger.identify(clientIp, newUUID, ws.instance, ws.uname)
                     logger.message('outcome','server.json')
                     ws.send(JSON.stringify({op: 2, uuid: newUUID, content: game, role: role}));
@@ -300,15 +300,31 @@ wss.on('connection', (ws, req) => {
                     ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
                 }
                 break;
+            case 50 :
+                if(!data.uuid){
+                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
+                    return;
+                }
+                if(clients[data.uuid].role==='admin'){
+                    reveal()
+                } else {
+                    ws.send(JSON.stringify({op: 5, error: "Vous n'avez pas la permission de changer cela! Erreur: [MISSING-PERMS]"}));
+                }
+                question()
+                break;
         }
     })
     ws.on("close", ()=>{
         delete clients[ws.id];
         console.log("[-] "+ws.id+", "+ws.uname+" logged out");
+        if(ws.instance==='GAME'){
+            connectedPlayers-1;
+        }
     });
 })
 
 function startGame(){
+    canGameBeStarted=true
     actualRound=0
     game.status='starting'
     fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
@@ -348,7 +364,6 @@ function verify(){
             const endDate = Date.now()
             console.log('All players are connected. Time elapsed: '+(endDate-startDate)+' ms.')
             game.countdown=10
-            canGameBeStarted=true
             console.log('------------------------------------ GAME CAN START ------------------------------------')
             question()
         }
@@ -382,7 +397,7 @@ async function question(){
         for(let client of Object.entries(clients)){
             if(!(client[1].instance==='GAME')) continue;
             client[1].send(JSON.stringify({op: 12, question: randomQuestion, round: actualRound, maxrounds: game.config.rounds}))
-            console.log('Question '+actualRound+' envoyée à '+client[1].id)
+            console.log('Question '+actualRound+' sent to '+client[1].uname)
         }
         let countDown = setInterval(()=>{
             game.responseCountdown--
@@ -391,13 +406,13 @@ async function question(){
                 op: 13,
                 count: game.responseCountdown
             }))
-            console.log('Time left: '+game.responseCountdown+' seconds')
+            //console.log('Time left: '+game.responseCountdown+' seconds')
             if(game.responseCountdown<=0){
                 clearInterval(countDown)
                 for(let client of Object.entries(clients)){
                     if(!(client[1].instance==='GAME')) continue;
                     client[1].send(JSON.stringify({op: 14}))
-                    console.log('requested response to '+client[1].id+' and ask for new round')
+                    console.log('requested response to '+client[1].uname+' and ask for new round')
                 }
             }
         },1000)
@@ -423,7 +438,7 @@ async function reveal(){
         for(let client of Object.entries(clients)){
             if(!(client[1].instance==='RESULTS')) continue;
             client[1].send(JSON.stringify({op: 21, question: game.questions[presentedRound-1], responses: game.responses[presentedRound-1], round: presentedRound, maxrounds: game.config.rounds}))
-            console.log('Résultats du round '+presentedRound+' envoyée à '+client[1].id)
+            console.log('Results of round '+presentedRound+' sent to '+client[1].uname)
         }
     } else {
         //finir les résultats
@@ -445,6 +460,7 @@ async function reveal(){
             client[1].send(JSON.stringify({op: 25}))
             console.log(client[1].id+' sent to start.')
         }
+        canGameBeStarted=false
     }
 }
 
