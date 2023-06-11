@@ -1,5 +1,5 @@
 let data=false
-let ws = new WebSocket('ws://localhost:8081')
+let ws = new WebSocket('ws://localhost:8082')
 let uuid = false
 let role='user'
 
@@ -50,6 +50,7 @@ ws.addEventListener('open', ()=> {
             masterDiv.innerHTML=''
             let row=0
             let elems = 0
+            console.log(data.responses)
             for (let response of data.responses){
                 console.log(row)
                 console.log(elems)

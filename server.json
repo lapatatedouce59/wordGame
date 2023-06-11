@@ -1,13 +1,12 @@
 {
   "maxusers": 10,
-  "onlineUsers": [
-  ],
+  "onlineUsers": [],
   "status": "waiting",
   "countdown": 10,
   "responseCountdown": 10,
   "config": {
-    "rounds": 4,
-    "tpq": 10
+    "rounds": 1,
+    "tpq": 5
   },
   "questions": [],
   "responses": []

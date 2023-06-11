@@ -14,7 +14,7 @@ let username = false
 
 let cookies = {}
 
-let whitelist = ['383637400099880964','1109789034512920636']
+let whitelist = ['383637400099880964', '1109789034512920636', '291632492622905354']
 
 for(const el of document.cookie.split("; ")){
     cookies[el.split("=")[0]] = el.split("=")[1]
