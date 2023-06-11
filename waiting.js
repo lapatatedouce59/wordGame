@@ -1,5 +1,5 @@
 let data=false
-let ws = new WebSocket('ws://localhost:8081')
+let ws = new WebSocket('ws://localhost:8082')
 let uuid = false
 let role='user'
 
@@ -72,7 +72,7 @@ function update(){
 function updatePlayerNames(){
     users.innerHTML=''
     for(let user of data.content.onlineUsers){
-        let uname = document.createElement('p')
+        let uname = document.createElement('p');
         let btnKick = document.createElement('button')
         btnKick.classList.add('adminBtns')
         btnKick.id='kickBtn'+user.pseudo
@@ -91,7 +91,7 @@ function updatePlayerNames(){
     }
     if(role==='user'){
         for(let btns of document.getElementsByClassName('adminBtns')){
-            btns.classList.add('hidden')
+            btns.classList.toggle('hidden', true); // Avoids adding multiple times the class
         }
     }
 }

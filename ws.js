@@ -10,6 +10,8 @@ const game=require('./server.json');
 game.countdown=10
 game.responseCountdown=10
 
+const admins = ['383637400099880964', '1095283865964269598' , '291632492622905354'];
+
 game.responses=[]
 game.questions=[]
 game.onlineUsers=[]
@@ -80,7 +82,7 @@ wss.on('connection', (ws, req) => {
                 try{
                     dUser = JSON.parse(data.user)
                     let role = 'user'
-                    if (dUser.id==='383637400099880964'||dUser.id==='1095283865964269598'){
+                    if (admins.includes(dUser.id)) {
                         role='admin'
                     }
                     //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
@@ -113,10 +115,6 @@ wss.on('connection', (ws, req) => {
                 }
                 if(game.onlineUsers.length>=game.maxusers){
                     ws.send(JSON.stringify({op: 5, error: "La partie est complète. Merci de patienter. Erreur: [MAX-PLAYERS]"}));
-                    return;
-                }
-                if(data.uuid===false){
-                    ws.send(JSON.stringify({op: 5, error: "Une erreur est survenue lors de l'identification. Merci de reload votre page. Erreur: [NO-UUID]"}));
                     return;
                 }
                 console.log(data)
@@ -186,7 +184,7 @@ wss.on('connection', (ws, req) => {
                 try{
                     dUser = JSON.parse(data.user)
                     let role = 'user'
-                    if (dUser.id==='383637400099880964'){
+                    if (admins.includes(dUser.id)){
                         role='admin'
                     }
                     //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
@@ -226,9 +224,9 @@ wss.on('connection', (ws, req) => {
                     if(!(players.user.id===ws.dUser.id)) continue;
                     if(players.user.id===ws.dUser.id){
 
-                        if(game.responseCountdown===0){
+                        if(game.responseCountdown<1){
                             console.log(ws.id+' has responded.')
-                            uresponses.push({ hole: data.completed, user: ws.dUser })
+                            uresponses.push({ hole: data.completed, user: ws.dUser, pseudo: players.pseudo })
                             if(uresponses.length===game.onlineUsers.length){
                                 game.responses.push(uresponses)
                                 fs.writeFileSync('./server.json', JSON.stringify(game, null, 2));
@@ -256,7 +254,7 @@ wss.on('connection', (ws, req) => {
                 try{
                     dUser = JSON.parse(data.user)
                     let role = 'user'
-                    if (dUser.id==='383637400099880964'){
+                    if (admins.includes(dUser.id)){
                         role='admin'
                     }
                     //let client = {uuid: newUUID, ip: clientIp, instance: data.from, uname: dUser.username, uid: dUser.id, role: role, dUser: dUser};
